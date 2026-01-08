@@ -6,10 +6,15 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 # from models import Person
 
@@ -19,7 +24,10 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-# database condiguration
+app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
+jwt = JWTManager(app)
+
+# database configuration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
@@ -65,6 +73,57 @@ def serve_any_other_file(path):
     response.cache_control.max_age = 0  # avoid cache memory
     return response
 
+
+@app.route('/signup',methods=['POST'])
+def signup():
+    body = request.get_json(silent=True)
+    if body is None:
+        return jsonify({'msg':'You must include information in the body'})
+    if 'username' not in body:
+        return jsonify({'msg': 'You must include a username'}),400
+    if 'email' not in body:
+        return jsonify({'msg':'Email is required'}),400
+    if 'password' not in body:
+        return jsonify({'msg':'Password is required'}),400
+    valid_email = User.query.filter_by(email=body['email']).first()
+    valid_username = User.query.filter_by(username=body['username']).first()
+    if valid_email != None:
+        return jsonify({'msg':'Email already exists'}),400
+    if valid_username != None:
+        return jsonify({'msg': 'Username already exists'}),400
+    new_user = User()
+    new_user.username = body['username']
+    new_user.email = body['email']
+    new_user.password = body['password']
+    new_user.is_active = True
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'msg':'New user added successfully'}),200
+
+@app.route('/login', methods=['POST'])
+def login():
+    body=request.get_json(silent=True)
+    if body is None:
+        return jsonify({'msg':'You must include information in the body'}),400
+    if 'email' not in body:
+        return jsonify({'msg': 'You must include an email'}),400
+    if 'password' not in body:
+        return jsonify({'msg':'You must include a password'}),400
+    user = User.query.filter_by(email=body['email']).first()
+    if user is None:
+        return jsonify({'msg': 'The email or password are incorrect'})
+    if user.password != body['password']:
+        return jsonify({'msg': 'The email or password are incorrect'})
+    token=create_access_token(identity=user.username)
+    return jsonify({'msg': 'Login successfull',
+                    'token': token}),200
+
+@app.route('/private',methods=['GET'])
+@jwt_required()
+def private():
+    user = get_jwt_identity()
+    return jsonify({'msg': f'Logged in as {user}'})
+    
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
