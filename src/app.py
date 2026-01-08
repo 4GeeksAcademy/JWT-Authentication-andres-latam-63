@@ -65,6 +65,8 @@ def sitemap():
     return send_from_directory(static_file_dir, 'index.html')
 
 # any other endpoint will try to serve it like a static file
+
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
@@ -74,23 +76,23 @@ def serve_any_other_file(path):
     return response
 
 
-@app.route('/signup',methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
     body = request.get_json(silent=True)
     if body is None:
-        return jsonify({'msg':'You must include information in the body'})
+        return jsonify({'msg': 'You must include information in the body'})
     if 'username' not in body:
-        return jsonify({'msg': 'You must include a username'}),400
+        return jsonify({'msg': 'You must include a username'}), 400
     if 'email' not in body:
-        return jsonify({'msg':'Email is required'}),400
+        return jsonify({'msg': 'Email is required'}), 400
     if 'password' not in body:
-        return jsonify({'msg':'Password is required'}),400
+        return jsonify({'msg': 'Password is required'}), 400
     valid_email = User.query.filter_by(email=body['email']).first()
     valid_username = User.query.filter_by(username=body['username']).first()
     if valid_email != None:
-        return jsonify({'msg':'Email already exists'}),400
+        return jsonify({'msg': 'Email already exists'}), 400
     if valid_username != None:
-        return jsonify({'msg': 'Username already exists'}),400
+        return jsonify({'msg': 'Username already exists'}), 400
     new_user = User()
     new_user.username = body['username']
     new_user.email = body['email']
@@ -98,32 +100,34 @@ def signup():
     new_user.is_active = True
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'msg':'New user added successfully'}),200
+    return jsonify({'msg': 'New user added successfully'}), 200
+
 
 @app.route('/login', methods=['POST'])
 def login():
-    body=request.get_json(silent=True)
+    body = request.get_json(silent=True)
     if body is None:
-        return jsonify({'msg':'You must include information in the body'}),400
+        return jsonify({'msg': 'You must include information in the body'}), 400
     if 'email' not in body:
-        return jsonify({'msg': 'You must include an email'}),400
+        return jsonify({'msg': 'You must include an email'}), 400
     if 'password' not in body:
-        return jsonify({'msg':'You must include a password'}),400
+        return jsonify({'msg': 'You must include a password'}), 400
     user = User.query.filter_by(email=body['email']).first()
     if user is None:
-        return jsonify({'msg': 'The email or password are incorrect'})
+        return jsonify({'msg': 'The email or password are incorrect'}), 400
     if user.password != body['password']:
-        return jsonify({'msg': 'The email or password are incorrect'})
-    token=create_access_token(identity=user.username)
+        return jsonify({'msg': 'The email or password are incorrect'}), 400
+    token = create_access_token(identity=user.username)
     return jsonify({'msg': 'Login successfull',
-                    'token': token}),200
+                    'token': token}), 200
 
-@app.route('/private',methods=['GET'])
+
+@app.route('/private', methods=['GET'])
 @jwt_required()
 def private():
     user = get_jwt_identity()
     return jsonify({'msg': f'Logged in as {user}'})
-    
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
