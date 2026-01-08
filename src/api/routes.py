@@ -69,5 +69,12 @@ def login():
     if user.password != body['password']:
         return jsonify({'msg': 'The email or password are incorrect'}), 400
     token = create_access_token(identity=user.username)
-    return jsonify({'msg': 'Login successfull',
+    return jsonify({'msg': 'Login successful',
                     'token': token}), 200
+
+@api.route('/private', methods=['GET'])
+@jwt_required()
+def private():
+    user = get_jwt_identity()
+    return jsonify({'msg': f'Logged in as {user}',
+                    'username':user})
