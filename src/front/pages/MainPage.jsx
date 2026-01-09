@@ -1,4 +1,5 @@
 export const MainPage = () => {
+    
     return (
         <>
         <div className="flex-container bg-dark text-white text-center pt-5 vh-100">

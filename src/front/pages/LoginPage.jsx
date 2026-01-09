@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const LoginPage = () => {
+  const { store, dispatch } = useGlobalReducer();
+
   const navigate = useNavigate();
 
   const [loginInfo, setLoginInfo] = useState({
@@ -38,6 +41,8 @@ export const LoginPage = () => {
         }
         alert(`${data.msg}`);
         localStorage.setItem("jwt-token", data.token);
+        localStorage.setItem("login-status", true)
+        dispatch({ type: "LoggedIn" });
         setLoginInfo({
           email: "",
           password: "",

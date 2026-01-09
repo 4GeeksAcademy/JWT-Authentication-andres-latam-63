@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const Private = () => {
+  const { store, dispatch } = useGlobalReducer();
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -36,8 +38,8 @@ export const Private = () => {
     <>
       <div className="flex-container bg-dark text-white text-center vh-100 pt-5 pb-5">
         <div className="row">
-            <h1>This is a private page</h1>
-            <h2>Welcome {user}</h2>
+          <h1>This is a private page</h1>
+          <h2>Welcome {user}</h2>
         </div>
       </div>
     </>
