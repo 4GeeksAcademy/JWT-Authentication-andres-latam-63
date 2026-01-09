@@ -10,6 +10,8 @@ from api.models import db, User
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_cors import CORS
+from flask_bcrypt import Bcrypt
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
@@ -24,8 +26,12 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
+CORS(app)
+
 app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
+
+bcrypt = Bcrypt(app)
 
 # database configuration
 db_url = os.getenv("DATABASE_URL")
@@ -96,11 +102,12 @@ def signup():
     new_user = User()
     new_user.username = body['username']
     new_user.email = body['email']
-    new_user.password = body['password']
+    pw_hash = bcrypt.generate_password_hash(body['password']).decode('utf-8')
+    new_user.password = pw_hash
     new_user.is_active = True
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({'msg': 'New user added successfully'}), 200
+    return jsonify({'msg': 'New user added successfully'}), 201
 
 
 @app.route('/login', methods=['POST'])
@@ -115,7 +122,8 @@ def login():
     user = User.query.filter_by(email=body['email']).first()
     if user is None:
         return jsonify({'msg': 'The email or password are incorrect'}), 400
-    if user.password != body['password']:
+    is_correct_password = bcrypt.check_password_hash(user.password, body['password'])
+    if not is_correct_password:
         return jsonify({'msg': 'The email or password are incorrect'}), 400
     token = create_access_token(identity=user.username)
     return jsonify({'msg': 'Login successful',

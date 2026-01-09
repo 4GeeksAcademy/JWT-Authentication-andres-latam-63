@@ -16,7 +16,7 @@ export const Navbar = () => {
 
   if (login) {
     return (
-      <nav className="navbar navbar-light bg-dark">
+      <nav className="navbar navbar-light bg-dark pt-2">
         <div className="container">
           <Link to="/">
             <span className="navbar-brand mb-0 h1 text-white">Main Page</span>
@@ -40,7 +40,7 @@ export const Navbar = () => {
     );
   } else {
     return (
-      <nav className="navbar navbar-light bg-dark">
+      <nav className="navbar navbar-primary bg-dark pt-2">
         <div className="container">
           <Link to="/">
             <span className="navbar-brand mb-0 h1 text-white">Main Page</span>

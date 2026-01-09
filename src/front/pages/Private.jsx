@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 
+import Swal from "sweetalert2";
+
+
 export const Private = () => {
   const { store, dispatch } = useGlobalReducer();
   const [user, setUser] = useState(null);
@@ -12,7 +15,7 @@ export const Private = () => {
     try {
       const token = localStorage.getItem("jwt-token");
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      const result = await fetch(backendUrl + "/api/private", {
+      const result = await fetch(backendUrl + "/private", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -20,12 +23,21 @@ export const Private = () => {
         },
       });
       const data = await result.json();
+      console.log(result.ok);
       if (!result.ok) {
-        alert("You must be logged in to view this content");
+        Swal.fire({
+          title: "Error!",
+          text: "You must be logged in to view this page",
+          icon: "error",
+          confirmButtonText: "Return",
+        });
         navigate("/");
+        return;
+      } else {
+        console.log("verificacion correcta");
+        setUser(data.username);
+        return;
       }
-      setUser(data.username);
-      return;
     } catch (error) {
       console.error(error);
     }

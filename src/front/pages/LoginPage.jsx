@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import Swal from "sweetalert2";
 
 export const LoginPage = () => {
   const { store, dispatch } = useGlobalReducer();
@@ -27,7 +28,7 @@ export const LoginPage = () => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
       if (loginInfo.email.trim() !== "" && loginInfo.password.trim() !== "") {
-        const result = await fetch(backendUrl + "/api/login", {
+        const result = await fetch(backendUrl + "/login", {
           method: "POST",
           body: JSON.stringify(loginInfo),
           headers: {
@@ -36,12 +37,23 @@ export const LoginPage = () => {
         });
         const data = await result.json();
         if (!result.ok) {
-          alert(data.msg);
+          Swal.fire({
+            title: "Error!",
+            text: data.msg,
+            icon: "warning",
+            confirmButtonText: "Ok",
+          });
           return;
         }
-        alert(`${data.msg}`);
+        Swal.fire({
+          title: "Nice!",
+          text: data.msg,
+          icon: "success",
+          confirmButtonText: "Ok",
+        });
+
         localStorage.setItem("jwt-token", data.token);
-        localStorage.setItem("login-status", true)
+        localStorage.setItem("login-status", true);
         dispatch({ type: "LoggedIn" });
         setLoginInfo({
           email: "",
@@ -59,6 +71,7 @@ export const LoginPage = () => {
     <>
       <div className="flex-container col-12  pt-5 pb-5 bg-dark vh-100">
         <div className="bg-secondary col-6 mx-auto pb-4 pt-4">
+          <h1 className="text-center text-white mb-3">Login</h1>
           <form onSubmit={Submit}>
             <div className="mb-3 col-8 mx-auto">
               <label for="Email" className="form-label">

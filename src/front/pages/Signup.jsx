@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 export const Signup = () => {
   const [info, setInfo] = useState({
@@ -26,7 +27,7 @@ export const Signup = () => {
         info.email.trim() !== "" &&
         info.password.trim() !== ""
       ) {
-        const result = await fetch(backendUrl + "/api/signup", {
+        const result = await fetch(backendUrl + "/signup", {
           method: "POST",
           body: JSON.stringify(info),
           headers: {
@@ -35,13 +36,29 @@ export const Signup = () => {
         });
         const data = await result.json();
         if (!result.ok) {
-          alert(data.msg);
+          Swal.fire({
+            title: "Error!",
+            text: data.msg,
+            icon: "error",
+            confirmButtonText: "Ok",
+          });
           return;
         }
-        alert(data.msg), setInfo({ username: "", email: "", password: "" });
+        Swal.fire({
+          title: "Nice!",
+          text: data.msg,
+          icon: "success",
+          confirmButtonText: "Ok",
+        });
+        setInfo({ username: "", email: "", password: "" });
         return;
       }
-      alert("You must fill all fields");
+      Swal.fire({
+            title: "Error!",
+            text: "You must fill in all fields",
+            icon: "error",
+            confirmButtonText: "Ok",
+          });
     } catch (error) {
       console.error(error);
     }
@@ -50,7 +67,8 @@ export const Signup = () => {
   return (
     <>
       <div className="flex-container col-12  pt-5 pb-5 bg-dark vh-100">
-        <div className="bg-secondary col-6 mx-auto pb-4">
+        <div className="bg-secondary col-6 mx-auto pb-4 pt-4">
+          <h1 className="col-12 text-center text-white mb-3">Register</h1>
           <form onSubmit={Submit}>
             <div className="mb-3 col-8 mx-auto pt-4">
               <label for="username" className="form-label">
